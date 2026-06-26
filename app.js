@@ -1,4 +1,4 @@
-export default function appSrc(express, bodyParser, createReadStream, crypto, http) {
+export default function appSrc(express, bodyParser, createReadStream, crypto, http, MongoClient) {
   const app = express();
 
   app.use(bodyParser.urlencoded({ extended: true }));
@@ -14,25 +14,21 @@ export default function appSrc(express, bodyParser, createReadStream, crypto, ht
     res.end("ayham");
   });
 
-  app.get("/code/", (req, res) => {
-    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
-    createReadStream(import.meta.url.substring(7)).pipe(res);
-  });
+  app.post("/insert/", async (req, res) => {
+    const login = req.body.login;
+    const password = req.body.password;
+    const URL = req.body.URL;
 
-  app.get("/sha1/:input/", (req, res) => {
-    const result = crypto.createHash("sha1").update(req.params.input).digest("hex");
-    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
-    res.end(result);
-  });
+    const client = await new MongoClient(URL).connect();
+    const db = client.db();
+    const collection = db.collection("users");
 
-  app.all("/req/", (req, res) => {
-    const addr = req.query.addr || req.body.addr;
-    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+    await collection.insertOne({ login, password });
 
-    http.get(addr, response => {
-      response.on("data", chunk => res.write(chunk));
-      response.on("end", () => res.end());
-    });
+    await client.close();
+
+    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+    res.end("ayham");
   });
 
   app.all("*", (req, res) => {
