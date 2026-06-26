@@ -7,29 +7,19 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res, next) => {
-  if (req.path !== "/" && !req.path.endsWith("/")) {
-    return res.redirect(301, req.path + "/");
-  }
-  next();
-});
-
 app.get("/login/", (req, res) => {
-  res
-    .type("text/plain; charset=UTF-8")
-    .send("ayham");
+  res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+  res.send("ayham");
 });
 
-app.get("/sample/:x/", (req, res) => {
-  const x = Number(req.params.x);
-  const result = x * x;
+function task(x) {
+  return x * x;
+}
 
-  res
-    .type("text/plain; charset=UTF-8")
-    .send(String(result));
+app.get("/sample/", (req, res) => {
+  res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+  res.send(task.toString());
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
-});
+app.listen(PORT);
