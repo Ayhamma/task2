@@ -11,8 +11,9 @@ export default function appSrc(express, bodyParser, createReadStream, crypto, ht
 
   app.use((req, res, next) => {
     if (req.path !== "/" && !req.path.endsWith("/")) {
-      const query = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
-      return res.redirect(301, req.path + "/" + query);
+      const q = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
+      res.redirect(301, req.path + "/" + q);
+      return;
     }
     next();
   });
@@ -27,16 +28,19 @@ export default function appSrc(express, bodyParser, createReadStream, crypto, ht
   });
 
   app.get("/sha1/:input/", (req, res) => {
-    const hash = crypto.createHash("sha1").update(req.params.input).digest("hex");
-    res.type("text/plain; charset=UTF-8").send(hash);
+    res.type("text/plain; charset=UTF-8").send(
+      crypto.createHash("sha1").update(req.params.input).digest("hex")
+    );
   });
 
   app.all("/req/", (req, res) => {
     const addr = req.query.addr || req.body.addr;
 
-    http.get(addr, (response) => {
+    http.get(addr, r => {
       res.type("text/plain; charset=UTF-8");
-      response.pipe(res);
+      r.pipe(res);
+    }).on("error", () => {
+      res.type("text/plain; charset=UTF-8").send("");
     });
   });
 
