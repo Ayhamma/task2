@@ -6,52 +6,69 @@ export default function appSrc(express, bodyParser, createReadStream, crypto, ht
   app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,OPTIONS,DELETE");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.status(200).end();
+      return;
+    }
+
     next();
   });
 
-  app.options("*", (req, res) => {
-    res.end();
+  app.use((req, res, next) => {
+    if (req.path !== "/" && !req.path.endsWith("/")) {
+      const query = req.url.includes("?")
+        ? req.url.slice(req.url.indexOf("?"))
+        : "";
+      return res.redirect(301, req.path + "/" + query);
+    }
+    next();
   });
 
   app.get("/login/", (req, res) => {
-    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
-    res.end("ayham");
+    res.type("text/plain; charset=UTF-8").send("ayham");
   });
 
   app.get("/code/", (req, res) => {
-    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+    res.type("text/plain; charset=UTF-8");
     createReadStream(import.meta.url.substring(7)).pipe(res);
   });
 
   app.get("/sha1/:input/", (req, res) => {
-    const hash = crypto.createHash("sha1").update(req.params.input).digest("hex");
-    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
-    res.end(hash);
+    const hash = crypto
+      .createHash("sha1")
+      .update(req.params.input)
+      .digest("hex");
+
+    res.type("text/plain; charset=UTF-8").send(hash);
   });
 
   app.all("/req/", (req, res) => {
     const addr = req.query.addr || req.body.addr;
 
-    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+    if (!addr) {
+      res.status(400).type("text/plain; charset=UTF-8").send("No addr");
+      return;
+    }
 
-    http.get(addr, r => {
-      let data = "";
+    http.get(addr, response => {
+      res.type("text/plain; charset=UTF-8");
 
-      r.on("data", chunk => {
-        data += chunk;
+      response.on("data", chunk => {
+        res.write(chunk);
       });
 
-      r.on("end", () => {
-        res.end(data);
+      response.on("end", () => {
+        res.end();
       });
     }).on("error", () => {
-      res.end("ayham");
+      res.status(500).type("text/plain; charset=UTF-8").send("Request failed");
     });
   });
 
   app.all("*", (req, res) => {
-    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
-    res.end("ayham");
+    res.type("text/plain; charset=UTF-8").send("ayham");
   });
 
   return app;
