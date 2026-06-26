@@ -28,9 +28,8 @@ export default function appSrc(express, bodyParser, createReadStream, crypto, ht
   });
 
   app.get("/sha1/:input/", (req, res) => {
-    res.type("text/plain; charset=UTF-8").send(
-      crypto.createHash("sha1").update(req.params.input).digest("hex")
-    );
+    const result = crypto.createHash("sha1").update(req.params.input).digest("hex");
+    res.type("text/plain; charset=UTF-8").send(result);
   });
 
   app.all("/req/", (req, res) => {
@@ -40,7 +39,7 @@ export default function appSrc(express, bodyParser, createReadStream, crypto, ht
       res.type("text/plain; charset=UTF-8");
       r.pipe(res);
     }).on("error", () => {
-      res.type("text/plain; charset=UTF-8").send("");
+      res.type("text/plain; charset=UTF-8").send("ayham");
     });
   });
 
