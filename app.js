@@ -7,38 +7,45 @@ export default function appSrc(express, bodyParser, createReadStream, crypto, ht
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,OPTIONS,DELETE");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    if (req.method === "OPTIONS") {
-      res.end();
-      return;
-    }
     next();
   });
 
-  app.get("/login/", (req, res) => {
-    res.type("text/plain; charset=UTF-8").send("ayham");
+  const login = "ayham";
+
+  app.get(["/login", "/login/"], (req, res) => {
+    res.type("text/plain").send(login);
   });
 
-  app.get("/code/", (req, res) => {
-    res.type("text/plain; charset=UTF-8");
+  app.get(["/code", "/code/"], (req, res) => {
+    res.type("text/plain");
     createReadStream(import.meta.url.substring(7)).pipe(res);
   });
 
-  app.get("/sha1/:input/", (req, res) => {
-    res.type("text/plain; charset=UTF-8").send(
+  app.get(["/sha1/:input", "/sha1/:input/"], (req, res) => {
+    res.type("text/plain").send(
       crypto.createHash("sha1").update(req.params.input).digest("hex")
     );
   });
 
-  app.all("/req/", (req, res) => {
+  app.all(["/req", "/req/"], (req, res) => {
     const addr = req.query.addr || req.body.addr;
-    http.get(addr, r => {
-      res.type("text/plain; charset=UTF-8");
-      r.pipe(res);
+
+    res.type("text/plain");
+
+    if (!addr) {
+      res.send(login);
+      return;
+    }
+
+    http.get(addr, response => {
+      response.pipe(res);
+    }).on("error", () => {
+      res.send(login);
     });
   });
 
   app.all("*", (req, res) => {
-    res.type("text/plain; charset=UTF-8").send("ayham");
+    res.type("text/plain").send(login);
   });
 
   return app;
