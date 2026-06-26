@@ -1,6 +1,8 @@
 export default function appSrc(express, bodyParser, createReadStream, crypto, http) {
   const app = express();
 
+  app.enable("strict routing");
+
   app.use(bodyParser.urlencoded({ extended: true }));
 
   app.use((req, res, next) => {
@@ -12,22 +14,22 @@ export default function appSrc(express, bodyParser, createReadStream, crypto, ht
 
   const login = "ayham";
 
-  app.get(["/login", "/login/"], (req, res) => {
+  app.get("/login/", (req, res) => {
     res.type("text/plain").send(login);
   });
 
-  app.get(["/code", "/code/"], (req, res) => {
+  app.get("/code/", (req, res) => {
     res.type("text/plain");
     createReadStream(import.meta.url.substring(7)).pipe(res);
   });
 
-  app.get(["/sha1/:input", "/sha1/:input/"], (req, res) => {
+  app.get("/sha1/:input/", (req, res) => {
     res.type("text/plain").send(
       crypto.createHash("sha1").update(req.params.input).digest("hex")
     );
   });
 
-  app.all(["/req", "/req/"], (req, res) => {
+  app.all("/req/", (req, res) => {
     const addr = req.query.addr || req.body.addr;
 
     res.type("text/plain");
