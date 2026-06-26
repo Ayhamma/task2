@@ -1,53 +1,43 @@
 export default function appSrc(express, bodyParser, createReadStream, crypto, http) {
   const app = express();
 
-  app.enable("strict routing");
-
   app.use(bodyParser.urlencoded({ extended: true }));
 
   app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,OPTIONS,DELETE");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     next();
   });
 
-  const login = "ayham";
-
   app.get("/login/", (req, res) => {
-    res.type("text/plain").send(login);
+    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+    res.end("ayham");
   });
 
   app.get("/code/", (req, res) => {
-    res.type("text/plain");
+    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
     createReadStream(import.meta.url.substring(7)).pipe(res);
   });
 
   app.get("/sha1/:input/", (req, res) => {
-    res.type("text/plain").send(
-      crypto.createHash("sha1").update(req.params.input).digest("hex")
-    );
+    const result = crypto.createHash("sha1").update(req.params.input).digest("hex");
+    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+    res.end(result);
   });
 
   app.all("/req/", (req, res) => {
     const addr = req.query.addr || req.body.addr;
-
-    res.type("text/plain");
-
-    if (!addr) {
-      res.send(login);
-      return;
-    }
+    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
 
     http.get(addr, response => {
-      response.pipe(res);
-    }).on("error", () => {
-      res.send(login);
+      response.on("data", chunk => res.write(chunk));
+      response.on("end", () => res.end());
     });
   });
 
   app.all("*", (req, res) => {
-    res.type("text/plain").send(login);
+    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+    res.end("ayham");
   });
 
   return app;
