@@ -9,18 +9,13 @@ export default function appSrc(express, bodyParser, createReadStream, crypto, ht
     next();
   });
 
-  app.use((req, res, next) => {
-    if (req.path !== "/" && !req.path.endsWith("/")) {
-      const q = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
-      res.redirect(301, req.path + "/" + q);
-      return;
-    }
-    next();
+  app.options("*", (req, res) => {
+    res.end();
   });
 
   app.get("/login/", (req, res) => {
     res.setHeader("Content-Type", "text/plain; charset=UTF-8");
-    res.send("ayham");
+    res.end("ayham");
   });
 
   app.get("/code/", (req, res) => {
@@ -31,7 +26,7 @@ export default function appSrc(express, bodyParser, createReadStream, crypto, ht
   app.get("/sha1/:input/", (req, res) => {
     const hash = crypto.createHash("sha1").update(req.params.input).digest("hex");
     res.setHeader("Content-Type", "text/plain; charset=UTF-8");
-    res.send(hash);
+    res.end(hash);
   });
 
   app.all("/req/", (req, res) => {
@@ -39,25 +34,24 @@ export default function appSrc(express, bodyParser, createReadStream, crypto, ht
 
     res.setHeader("Content-Type", "text/plain; charset=UTF-8");
 
-    if (!addr) {
-      res.send("ayham");
-      return;
-    }
+    http.get(addr, r => {
+      let data = "";
 
-    try {
-      http.get(addr, r => {
-        r.pipe(res);
-      }).on("error", () => {
-        res.send("ayham");
+      r.on("data", chunk => {
+        data += chunk;
       });
-    } catch (e) {
-      res.send("ayham");
-    }
+
+      r.on("end", () => {
+        res.end(data);
+      });
+    }).on("error", () => {
+      res.end("ayham");
+    });
   });
 
   app.all("*", (req, res) => {
     res.setHeader("Content-Type", "text/plain; charset=UTF-8");
-    res.send("ayham");
+    res.end("ayham");
   });
 
   return app;
