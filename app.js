@@ -19,32 +19,45 @@ export default function appSrc(express, bodyParser, createReadStream, crypto, ht
   });
 
   app.get("/login/", (req, res) => {
-    res.type("text/plain; charset=UTF-8").send("ayham");
+    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+    res.send("ayham");
   });
 
   app.get("/code/", (req, res) => {
-    res.type("text/plain; charset=UTF-8");
+    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
     createReadStream(import.meta.url.substring(7)).pipe(res);
   });
 
   app.get("/sha1/:input/", (req, res) => {
-    const result = crypto.createHash("sha1").update(req.params.input).digest("hex");
-    res.type("text/plain; charset=UTF-8").send(result);
+    const hash = crypto.createHash("sha1").update(req.params.input).digest("hex");
+    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+    res.send(hash);
   });
 
   app.all("/req/", (req, res) => {
     const addr = req.query.addr || req.body.addr;
 
-    http.get(addr, r => {
-      res.type("text/plain; charset=UTF-8");
-      r.pipe(res);
-    }).on("error", () => {
-      res.type("text/plain; charset=UTF-8").send("ayham");
-    });
+    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+
+    if (!addr) {
+      res.send("ayham");
+      return;
+    }
+
+    try {
+      http.get(addr, r => {
+        r.pipe(res);
+      }).on("error", () => {
+        res.send("ayham");
+      });
+    } catch (e) {
+      res.send("ayham");
+    }
   });
 
   app.all("*", (req, res) => {
-    res.type("text/plain; charset=UTF-8").send("ayham");
+    res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+    res.send("ayham");
   });
 
   return app;
